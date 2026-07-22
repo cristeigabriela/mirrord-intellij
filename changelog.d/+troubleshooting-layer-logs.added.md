@@ -1,0 +1,1 @@
+Added a troubleshooting option in mirrord settings that logs the layer at trace level to a file. When enabled, every run receives `MIRRORD_LOG=trace`, `RUST_LOG=trace`, and — when a log directory is picked — `MIRRORD_LAYER_LOG_PATH`, so the layer's own logs are captured automatically on every platform (including through the Windows `MIRRORD_CHILD_ENV` path).

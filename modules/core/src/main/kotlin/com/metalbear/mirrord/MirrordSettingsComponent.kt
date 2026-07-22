@@ -1,5 +1,7 @@
 package com.metalbear.mirrord
 
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
+import com.intellij.openapi.ui.TextFieldWithBrowseButton
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
@@ -44,6 +46,26 @@ class MirrordSettingsComponent {
             }
         }
 
+    private val troubleshootingLogsPathLabel = JBLabel("Log directory:")
+    private val troubleshootingLogsPath = TextFieldWithBrowseButton().apply {
+        toolTipText = "directory for mirrord's trace logs (sets MIRRORD_LAYER_LOG_PATH); " +
+            "leave empty to log to stderr only"
+        addBrowseFolderListener(
+            null,
+            FileChooserDescriptorFactory.createSingleFolderDescriptor().withTitle("mirrord Layer Log Directory")
+        )
+        isEnabled = false
+    }
+
+    private val troubleshootingLogsEnabled = JBCheckBox("Log mirrord to file for troubleshooting (trace level)")
+        .apply {
+            toolTipText = "sets MIRRORD_LOG=trace, RUST_LOG=trace and, when a directory is given, " +
+                "MIRRORD_LAYER_LOG_PATH — these reach the layer on every platform"
+            addItemListener { e ->
+                troubleshootingLogsPath.isEnabled = e.stateChange == ItemEvent.SELECTED
+            }
+        }
+
     private val autoUpdatePanel = FormBuilder
         .createFormBuilder()
         .addComponent(autoUpdate)
@@ -60,6 +82,9 @@ class MirrordSettingsComponent {
         .addLabeledComponent(taskTimeoutLabel, taskTimeout)
         .addSeparator()
         .addComponent(autoUpdatePanel)
+        .addSeparator()
+        .addComponent(troubleshootingLogsEnabled)
+        .addLabeledComponent(troubleshootingLogsPathLabel, troubleshootingLogsPath)
         .addSeparator()
         .addComponent(JBLabel("Notify when:"))
         .apply {
@@ -125,5 +150,18 @@ class MirrordSettingsComponent {
         get() = taskTimeout.text.trim().toIntOrNull()?.takeIf { it > 0 } ?: DEFAULT_TASK_TIMEOUT_MINUTES
         set(value) {
             taskTimeout.text = value.toString()
+        }
+
+    var troubleshootingLogsEnabledStatus: Boolean
+        get() = troubleshootingLogsEnabled.isSelected
+        set(value) {
+            troubleshootingLogsEnabled.isSelected = value
+            troubleshootingLogsPath.isEnabled = value
+        }
+
+    var troubleshootingLogsPathStatus: String
+        get() = troubleshootingLogsPath.text
+        set(value) {
+            troubleshootingLogsPath.text = value.trim()
         }
 }
